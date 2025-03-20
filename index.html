@@ -9,7 +9,8 @@
 <body>
   <div class="button-container">
     <button id="quickNotesBtn">Quick Notes</button>
-    <button id="previousNotesBtn">Previous Notes</button>
+    <button id="previousNotesBtn"></button>
+    <button id="black-ai">Black AI</button>
   </div>
 
   <!-- Quick Notes Section -->
@@ -17,7 +18,7 @@
     <div id="noteInput" contenteditable="true" class="note-input" placeholder="Type your note..."></div>
     <div class="buttondiv">
       <button id="saveBtn">
-        <img id="saveIcon" src="assets/save.png" alt="Save" style="width: 20px; height: 20px;">
+        <img id="saveIcon" src="assets/checked.jpg" alt="Save" style="width: 20px; height: 20px;">
         Save Note
       </button>
       <button id="aiSuggestBtn">Get AI Suggestion</button>
@@ -27,6 +28,17 @@
   <!-- Previous Notes Section -->
   <div id="previousNotesSection">
     <ul id="noteList"></ul>
+  </div>
+
+  <!-- Black AI Section -->
+  <div id="blackAISection">
+    <h2>Black AI</h2>
+    <div id="chat-box"></div>
+    <div class="chat-input-container">
+      <input type="text" id="user-text" placeholder="Ask something...">
+      <button id="send-btn">Send</button>
+      <button id="clear-btn">Clear</button>
+    </div>
   </div>
 
   <script src="scripts.js"></script>

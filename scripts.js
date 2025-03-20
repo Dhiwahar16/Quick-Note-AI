@@ -1,5 +1,5 @@
 // API Key (for now, replace with secure storage in production)
-const API_KEY =<Enter_your_api_key>;//enter your api key
+const API_KEY = "AIzaSyAFy1PE-NhZsIslFeRTvQwPN1XcjdQdAF8"; // Ensure this key is valid
 
 async function fetchAIResponse(promptText) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
@@ -48,41 +48,6 @@ async function fetchAIResponse(promptText) {
     }
 }
 
-function formatAIResponse(rawResponse) {
-    const cleanedResponse = rawResponse.replace(/\*\*/g, '');
-    const lines = cleanedResponse.split('\n').filter(line => line.trim());
-    let formatted = '';
-    let inList = false;
-    let optionCounter = 1;
-
-    lines.forEach((line, index) => {
-        if (!inList && !line.match(/^Option \d+/)) {
-            formatted += `${line}<br><br>`;
-            return;
-        }
-
-        if (line.match(/^Option \d+ \(.+\):/)) {
-            if (inList) formatted += '<br>';
-            inList = true;
-            const optionDesc = line.match(/\((.+)\)/)[1];
-            formatted += `${optionCounter++}. ${optionDesc}:<br>`;
-        }
-        else if (inList && line.match(/^\s*Note Title:/)) {
-            const content = line.replace('Note Title:', '').trim();
-            formatted += `  <b>Note Title:</b> ${content}<br>`;
-        }
-        else if (inList && line.match(/^\s*Note Content:/)) {
-            const content = line.replace('Note Content:', '').trim();
-            formatted += `  <b>Note Content:</b> ${content}`;
-        }
-        else if (inList && line.trim() && !line.match(/^Option \d+/)) {
-            formatted += ` ${line.trim()}`;
-        }
-    });
-
-    return formatted || cleanedResponse.replace(/\n/g, '<br>');
-}
-
 function saveNote() {
     const noteInput = document.getElementById("noteInput");
     const noteText = noteInput.innerHTML.trim();
@@ -117,7 +82,7 @@ function displayNotes() {
         noteUrl.innerHTML = `<a href="${note.url}" target="_blank">${note.urlname}</a>`;
         
         const deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = `<img src="assets/delete.png" alt="Delete" style="width: 20px; height: 20px;">`;
+        deleteBtn.innerHTML = `<img src="assets/delete.jpg" alt="Delete" style="width: 20px; height: 20px;">`;
         deleteBtn.classList.add("delete-btn");
         deleteBtn.addEventListener("click", () => deleteNote(notes.length - 1 - index));
 
@@ -136,16 +101,301 @@ function deleteNote(index) {
     displayNotes();
 }
 
+async function initializeChat() {
+    const pageData = await getPageContent();
+    const pageContent = pageData.content;
+    const pageUrl = pageData.url;
+    
+    loadChatHistory();
+    
+    document.getElementById("send-btn").addEventListener("click", async () => {
+        const inputText = document.getElementById("user-text");
+        const userInput = inputText.value.trim();
+    
+        if (!userInput) return;
+        
+        updateChat("You: ", userInput);
+        saveChatHistory("You: ", userInput);
+        inputText.value = "";
+    
+        const response = await getResponse(userInput, pageContent, pageUrl);
+        updateChat("Black AI: ", response);
+        saveChatHistory("Black AI: ", response);
+    });
+    
+    document.getElementById("clear-btn").addEventListener("click", clearChat);
+}
+
+
+const input = document.getElementById('user-text')
+const button = document.getElementById('send-btn');
+
+input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        button.click();
+    }
+})
+
+document.addEventListener('keydown', function (event) {
+    if (event.key) {
+        input.focus();
+    }
+})
+
+function updateChat(sender, message) {
+    const chatBox = document.getElementById("chat-box");
+    const messageP = document.createElement("p");
+    const formattedMessage = formatAIResponse(message);
+    // Include <strong> inside the <span> to apply background to both sender and message
+    messageP.innerHTML = `<span><strong>${sender}</strong> ${formattedMessage}</span>`;
+
+    // Add class based on sender
+    if (sender === "Black AI: ") {
+        messageP.classList.add("ai-message");
+    } else if (sender === "You: ") {
+        messageP.classList.add("user-message");
+    }
+
+    chatBox.appendChild(messageP);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+function loadChatHistory() {
+    chrome.storage.local.get(["chatHistory"], (result) => {
+        const chatHistory = result.chatHistory || [];
+        chatHistory.forEach(entry => {
+            updateChat(entry.sender, entry.message);
+        });
+    });
+}
+
+function saveChatHistory(sender, message) {
+    const chatEntry = {
+        sender,
+        message,
+        timestamp: Date.now()
+    };
+    chrome.storage.local.get(["chatHistory"], (result) => {
+        let chatHistory = result.chatHistory || [];
+        chatHistory.push(chatEntry);
+        chrome.storage.local.set({ chatHistory }, () => {
+            console.log("Chat updated chatbox", chatEntry);
+        });
+    });
+}
+
+async function getPageContent() {
+    return new Promise((resolve) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId: tabs[0].id },
+                    function: () => document.body.innerText
+                },
+                (results) => {
+                    if (results && results[0] && results[0].result) {
+                        resolve({
+                            content: results[0].result,
+                            url: tabs[0].url
+                        });
+                    } else {
+                        resolve({
+                            content: "Unable to fetch content",
+                            url: tabs[0].url || "Unknown URL"
+                        });
+                    }
+                }
+            );
+        });
+    });
+}
+
+function getChatHistoryForAI() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(["chatHistory"], (result) => {
+            resolve(result.chatHistory || []);
+        });
+    });
+}
+
+async function getResponse(prompt, pageContent, pageUrl) {
+    try {
+        // Fetch the chat history for context
+        const chatHistoryForAI = await getChatHistoryForAI();
+        let contextForAI = "Previous conversation:\n";
+        chatHistoryForAI.forEach((entry) => {
+            contextForAI += `${entry.sender}:${entry.message}\n`;
+        });
+        contextForAI += "\nNow respond to current question.\n";
+
+        // Detect if the prompt is code-related using a regex
+        const isCodeRelated = /function|class|\{|\}|=>|var|let|const/i.test(prompt);
+        let enhancedPrompt = prompt;
+
+        // Adjust the prompt if it’s code-related for a more tailored response
+        if (isCodeRelated) {
+            enhancedPrompt = `
+            This seems like a coding-related question. Provide a detailed solution with code examples if applicable, 
+            and explain the solution step-by-step: ${prompt}
+            `;
+        }
+
+        // Base system instruction for the AI, including webpage context
+        const systemInstruction = `
+        You are an AI assistant that answers questions related to the domain of the current webpage (e.g., programming, learning, applications) and can solve problems within that domain. 
+        Here is the webpage content for context: "${pageContent.substring(0, 6000)}" (limited to 6000 characters for brevity).
+        Here is the webpage URL for analysis: "${pageUrl}".
+        Answer the user's question based on the webpage content, its domain, and the URL. If the user asks about the current website (e.g., its features, usage, advantages, disadvantages, or alternatives), analyze the URL and provide relevant insights. 
+        If the user asks to solve a problem mentioned on the webpage or related to its domain (e.g., coding issues, learning strategies, app functionality), provide a detailed solution using the content as a starting point and your understanding of the domain.
+        For domain-specific questions (e.g., programming languages, software engineering, learning platforms, app usage), answer broadly within the domain, referencing similar websites or concepts only if supported by the webpage content or URL context—do not speculate beyond this.
+        Respond to basic greetings (e.g., "Hi") appropriately. If the question is unrelated to the webpage’s domain (e.g., cooking on a programming site), reply with: "I can only answer questions related to the domain of this webpage."
+        Do not include previous chat history in your answers unless the user explicitly asks about it (e.g., "What did I ask before?"). 
+        Provide concise, accurate, and detailed responses, diving into specifics with insights, explanations, or examples tied to the webpage content, domain, or URL analysis. Avoid external information beyond what’s provided or implied by the domain.
+        `;
+
+        // Fetch the main AI response
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: systemInstruction },
+                        { text: `${contextForAI}User question: ${enhancedPrompt}` }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                }
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP error status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI";
+
+        const followUpPrompt = `
+        Based on this response: "${aiText}", suggest 2-3 concise follow-up questions the user might ask next. 
+        Format the suggestions as a numbered list (e.g., "1. [question]"). 
+        Keep them relevant to the response and the webpage domain.ask questions with 3 or 4 words for user understanding.
+        `;
+        const followUpRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: followUpPrompt }]
+                }],
+                generationConfig: {
+                    temperature: 0.9,
+                    maxOutputTokens: 100
+                }
+            })
+        });
+
+        const followUpData = await followUpRes.json();
+        const followUps = followUpData?.candidates?.[0]?.content?.parts?.[0]?.text || "No follow-up suggestions available.";
+
+        const fullResponse = `${aiText}\n\n\n**Suggested Follow-ups:**\n${followUps}`;
+        return fullResponse;
+
+    } catch (err) {
+        console.error("Error talking to AI:", err);
+        return `Something went wrong: ${err.message}`;
+    }
+}
+
+function clearChat() {
+    const chatBoxHistory = document.getElementById("chat-box");
+    chatBoxHistory.innerHTML = "";
+
+    chrome.storage.local.remove("chatHistory", () => {
+        console.log("Chat history cleared");
+    });
+}
+
+function formatAIResponse(rawResponse) {
+    const cleanedResponse = rawResponse.replace(/\*\*/g, '').trim();
+    const lines = cleanedResponse.split('\n').filter(line => line.trim() !== '');
+    
+    let formatted = '';
+    let inCodeBlock = false;
+    let inList = false;
+    let listCounter = 1;
+
+    lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+
+        // Detect start/end of code block
+        if (trimmedLine.startsWith('```')) {
+            if (inCodeBlock) {
+                formatted += '</code></pre>';
+                inCodeBlock = false;
+            } else {
+                formatted += '<pre><code>';
+                inCodeBlock = true;
+            }
+            return;
+        }
+
+        // Handle code block content
+        if (inCodeBlock) {
+            formatted += `${line}\n`; // Keep original indentation
+            return;
+        }
+
+        // Detect list items
+        if (trimmedLine.match(/^\d+\.\s/) || trimmedLine.startsWith('* ')) {
+            if (!inList) {
+                formatted += '<br>';
+                inList = true;
+            }
+            const listContent = trimmedLine.replace(/^\d+\.\s|\*\s/, '');
+            formatted += `${listCounter++}. ${listContent}<br>`;
+            return;
+        } else if (inList) {
+            inList = false;
+            listCounter = 1;
+        }
+
+        // Handle bold text
+        if (trimmedLine.includes('Note:') || trimmedLine.includes('Title:')) {
+            const parts = trimmedLine.split(':');
+            formatted += `<b>${parts[0]}:</b> ${parts.slice(1).join(':').trim()}<br><br>`;
+            return;
+        }
+
+        // Default: Plain text
+        formatted += `${trimmedLine}<br>`;
+    });
+
+    if (inCodeBlock) {
+        formatted += '</code></pre>';
+    }
+
+    return formatted || cleanedResponse.replace(/\n/g, '<br>');
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const quickNotesBtn = document.getElementById("quickNotesBtn");
     const previousNotesBtn = document.getElementById("previousNotesBtn");
+    const blackAIBtn = document.getElementById("black-ai");
     const quickNotesSection = document.getElementById("quickNotesSection");
     const previousNotesSection = document.getElementById("previousNotesSection");
+    const blackAISection = document.getElementById("blackAISection");
     const aiSuggestBtn = document.getElementById("aiSuggestBtn");
     const noteInput = document.getElementById("noteInput");
     const saveBtn = document.getElementById("saveBtn");
 
-    if (!aiSuggestBtn || !noteInput || !saveBtn) {
+    if (!aiSuggestBtn || !noteInput || !saveBtn || !blackAIBtn) {
         console.error("Required elements not found.");
         return;
     }
@@ -153,19 +403,33 @@ document.addEventListener("DOMContentLoaded", function () {
     function showQuickNotes() {
         quickNotesSection.style.display = "block";
         previousNotesSection.style.display = "none";
+        blackAISection.style.display = "none";
         quickNotesBtn.classList.add("active");
         previousNotesBtn.classList.remove("active");
+        blackAIBtn.classList.remove("active");
     }
 
     function showPreviousNotes() {
         quickNotesSection.style.display = "none";
         previousNotesSection.style.display = "block";
+        blackAISection.style.display = "none";
         quickNotesBtn.classList.remove("active");
         previousNotesBtn.classList.add("active");
+        blackAIBtn.classList.remove("active");
+    }
+
+    function showBlackAI() {
+        quickNotesSection.style.display = "none";
+        previousNotesSection.style.display = "none";
+        blackAISection.style.display = "block";
+        quickNotesBtn.classList.remove("active");
+        previousNotesBtn.classList.remove("active");
+        blackAIBtn.classList.add("active");
     }
 
     quickNotesBtn.addEventListener("click", showQuickNotes);
     previousNotesBtn.addEventListener("click", showPreviousNotes);
+    blackAIBtn.addEventListener("click", showBlackAI);
     saveBtn.addEventListener("click", saveNote);
 
     aiSuggestBtn.addEventListener("click", async function () {
@@ -218,6 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    initializeChat();
     showQuickNotes();
     displayNotes();
 });
