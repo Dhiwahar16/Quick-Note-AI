@@ -48,32 +48,130 @@ async function fetchAIResponse(promptText) {
     }
 }
 
+// Add this function to categorize notes based on content
+async function categorizeNote(noteText) {
+    const categories = ["#code", "#article", "#research", "#tutorial", "#idea", "#task", "#question"];
+    
+    // Create a prompt for the AI to analyze the note content
+    const categorizePrompt = `
+    Analyze the following note content and determine the most appropriate category.
+    Choose ONLY ONE category from this exact list: ${categories.join(", ")}
+    If unsure, choose the most likely match.
+    Return ONLY the category tag with no explanation or additional text.
+    
+    NOTE CONTENT:
+    ${noteText}`;
+    
+    try {
+        // Use the existing AI function to get a category prediction
+        const categoryResult = await fetchAIResponse(categorizePrompt);
+        
+        // Clean up the response to ensure it's just the category tag
+        const matchedCategory = categories.find(cat => 
+            categoryResult.toLowerCase().includes(cat.toLowerCase())
+        );
+        
+        return matchedCategory || "#other"; // Default to #other if no match found
+    } catch (error) {
+        console.error("Error categorizing note:", error);
+        return "#other"; // Default category on error
+    }
+}
+
+// Modify the saveNote function to include categorization
 function saveNote() {
     const noteInput = document.getElementById("noteInput");
     const noteText = noteInput.innerHTML.trim();
 
     if (noteText && noteText !== '<br>') {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
             const currentUrl = tabs[0].url;
             const currentTitle = tabs[0].title;
+            
+            // First, categorize the note
+            const category = await categorizeNote(noteText);
+            
+            // Add the note with its category
             let notes = JSON.parse(localStorage.getItem("notes")) || [];
-            notes.push({ text: noteText, url: currentUrl, urlname: currentTitle });
+            notes.push({ 
+                text: noteText, 
+                url: currentUrl, 
+                urlname: currentTitle,
+                category: category,
+                timestamp: Date.now()
+            });
+            
             localStorage.setItem("notes", JSON.stringify(notes));
             displayNotes();
             noteInput.innerHTML = '';
-            noteInput.setAttribute('data-placeholder', "Note saved! Type another...");
+            noteInput.setAttribute('data-placeholder', `Note saved with ${category} tag! Type another...`);
             setTimeout(() => noteInput.setAttribute('data-placeholder', "Type your note..."), 2000);
         });
     }
 }
 
+// Update the displayNotes function to show categories
 function displayNotes() {
     const noteList = document.getElementById("noteList");
     const notes = JSON.parse(localStorage.getItem("notes")) || [];
     noteList.innerHTML = '';
     
-    notes.slice().reverse().forEach((note, index) => {
+    // Add category filter UI at the top
+    const filterDiv = document.createElement("div");
+    filterDiv.classList.add("category-filter");
+    filterDiv.innerHTML = `
+        <span>Filter by: </span>
+        <select id="categoryFilter">
+            <option value="all">All Notes</option>
+            <option value="#code">#code</option>
+            <option value="#article">#article</option>
+            <option value="#research">#research</option>
+            <option value="#tutorial">#tutorial</option>
+            <option value="#idea">#idea</option>
+            <option value="#task">#task</option>
+            <option value="#question">#question</option>
+            <option value="#other">#other</option>
+        </select>
+    `;
+    noteList.appendChild(filterDiv);
+    
+    // Add event listener to the filter dropdown
+    setTimeout(() => {
+        const categoryFilter = document.getElementById("categoryFilter");
+        if (categoryFilter) {
+            categoryFilter.addEventListener("change", function() {
+                displayFilteredNotes(this.value);
+            });
+        }
+    }, 0);
+    
+    // Display notes (initially shows all)
+    displayFilteredNotes("all");
+}
+
+// Function to display notes filtered by category
+function displayFilteredNotes(filterCategory) {
+    const noteList = document.getElementById("noteList");
+    const notes = JSON.parse(localStorage.getItem("notes")) || [];
+    
+    // Keep the filter dropdown but clear the notes
+    const filterDiv = noteList.querySelector(".category-filter");
+    noteList.innerHTML = '';
+    if (filterDiv) noteList.appendChild(filterDiv);
+    
+    // Filter notes based on selected category
+    const filteredNotes = filterCategory === "all" 
+        ? notes 
+        : notes.filter(note => note.category === filterCategory);
+    
+    filteredNotes.slice().reverse().forEach((note, index) => {
         const li = document.createElement("li");
+        
+        // Add category tag with color
+        const categoryTag = document.createElement("span");
+        categoryTag.textContent = note.category || "#other";
+        categoryTag.classList.add("category-tag");
+        categoryTag.classList.add(getCategoryColorClass(note.category));
         
         const noteText = document.createElement("p");
         noteText.innerHTML = note.text;
@@ -81,17 +179,61 @@ function displayNotes() {
         const noteUrl = document.createElement("small");
         noteUrl.innerHTML = `<a href="${note.url}" target="_blank">${note.urlname}</a>`;
         
+        const noteTimestamp = document.createElement("small");
+        noteTimestamp.classList.add("timestamp");
+        noteTimestamp.textContent = formatTimestamp(note.timestamp);
+        
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = `<img src="assets/delete.jpg" alt="Delete" style="width: 20px; height: 20px;">`;
         deleteBtn.classList.add("delete-btn");
         deleteBtn.addEventListener("click", () => deleteNote(notes.length - 1 - index));
 
+        // Add note header with category and timestamp
+        const noteHeader = document.createElement("div");
+        noteHeader.classList.add("note-header");
+        noteHeader.appendChild(categoryTag);
+        noteHeader.appendChild(noteTimestamp);
+        
+        li.appendChild(noteHeader);
         li.appendChild(noteUrl);
         li.appendChild(noteText);
         li.appendChild(deleteBtn);
 
         noteList.appendChild(li);
     });
+    
+    // Show message if no notes with selected filter
+    if (filteredNotes.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.classList.add("empty-notes-message");
+        emptyMessage.textContent = filterCategory === "all" 
+            ? "No notes saved yet." 
+            : `No notes with ${filterCategory} category.`;
+        noteList.appendChild(emptyMessage);
+    }
+}
+
+// Format timestamp to a readable date
+function formatTimestamp(timestamp) {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Get appropriate color class based on category
+function getCategoryColorClass(category) {
+    const categoryColors = {
+        "#code": "category-code",
+        "#article": "category-article",
+        "#research": "category-research",
+        "#tutorial": "category-tutorial",
+        "#idea": "category-idea",
+        "#task": "category-task",
+        "#question": "category-question",
+        "#other": "category-other"
+    };
+    
+    return categoryColors[category] || "category-other";
 }
 
 function deleteNote(index) {
@@ -219,27 +361,14 @@ function getChatHistoryForAI() {
 
 async function getResponse(prompt, pageContent, pageUrl) {
     try {
-        // Fetch the chat history for context
         const chatHistoryForAI = await getChatHistoryForAI();
         let contextForAI = "Previous conversation:\n";
         chatHistoryForAI.forEach((entry) => {
             contextForAI += `${entry.sender}:${entry.message}\n`;
         });
         contextForAI += "\nNow respond to current question.\n";
-
-        // Detect if the prompt is code-related using a regex
-        const isCodeRelated = /function|class|\{|\}|=>|var|let|const/i.test(prompt);
         let enhancedPrompt = prompt;
-
-        // Adjust the prompt if it’s code-related for a more tailored response
-        if (isCodeRelated) {
-            enhancedPrompt = `
-            This seems like a coding-related question. Provide a detailed solution with code examples if applicable, 
-            and explain the solution step-by-step: ${prompt}
-            `;
-        }
-
-        // Base system instruction for the AI, including webpage context
+        
         const systemInstruction = `
         You are an AI assistant that answers questions related to the domain of the current webpage (e.g., programming, learning, applications) and can solve problems within that domain. 
         Here is the webpage content for context: "${pageContent.substring(0, 6000)}" (limited to 6000 characters for brevity).
@@ -252,7 +381,6 @@ async function getResponse(prompt, pageContent, pageUrl) {
         Provide concise, accurate, and detailed responses, diving into specifics with insights, explanations, or examples tied to the webpage content, domain, or URL analysis. Avoid external information beyond what’s provided or implied by the domain.
         `;
 
-        // Fetch the main AI response
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
             method: "POST",
             headers: {
@@ -353,7 +481,6 @@ function formatAIResponse(rawResponse) {
             return;
         }
 
-        // Detect list items
         if (trimmedLine.match(/^\d+\.\s/) || trimmedLine.startsWith('* ')) {
             if (!inList) {
                 formatted += '<br>';
@@ -366,15 +493,11 @@ function formatAIResponse(rawResponse) {
             inList = false;
             listCounter = 1;
         }
-
-        // Handle bold text
         if (trimmedLine.includes('Note:') || trimmedLine.includes('Title:')) {
             const parts = trimmedLine.split(':');
             formatted += `<b>${parts[0]}:</b> ${parts.slice(1).join(':').trim()}<br><br>`;
             return;
         }
-
-        // Default: Plain text
         formatted += `${trimmedLine}<br>`;
     });
 

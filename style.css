@@ -314,3 +314,91 @@ button.active {
   max-width: 75%; /* Optional: limit width to 75% of container */
   box-sizing: border-box;
 }
+/* Category Filter Styles */
+.category-filter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 8px;
+  background-color: #2a2e35;
+  border-radius: 5px;
+}
+
+.category-filter span {
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.category-filter select {
+  flex-grow: 1;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: #EEEEEE;
+  color: #222831;
+  border: 1px solid #393E46;
+}
+
+/* Note Header Styles */
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+/* Category Tag Styles */
+.category-tag {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Category-specific colors */
+.category-code {
+  background-color: #007acc; /* Blue for code */
+}
+
+.category-article {
+  background-color: #6b46c1; /* Purple for articles */
+}
+
+.category-research {
+  background-color: #2c7a7b; /* Teal for research */
+}
+
+.category-tutorial {
+  background-color: #38a169; /* Green for tutorials */
+}
+
+.category-idea {
+  background-color: #d69e2e; /* Yellow for ideas */
+}
+
+.category-task {
+  background-color: #e53e3e; /* Red for tasks */
+}
+
+.category-question {
+  background-color: #dd6b20; /* Orange for questions */
+}
+
+.category-other {
+  background-color: #718096; /* Gray for other */
+}
+
+/* Timestamp Styles */
+.timestamp {
+  font-size: 11px;
+  color: #a0aec0;
+  align-self: center;
+}
+
+/* Empty notes message */
+.empty-notes-message {
+  text-align: center;
+  color: #a0aec0;
+  padding: 20px 0;
+  font-style: italic;
+}
