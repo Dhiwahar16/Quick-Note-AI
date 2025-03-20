@@ -305,6 +305,7 @@ async function getResponse(prompt, pageContent, pageUrl) {
         const followUps = followUpData?.candidates?.[0]?.content?.parts?.[0]?.text || "No follow-up suggestions available.";
 
         const fullResponse = `${aiText}\n\n\n**Suggested Follow-ups:**\n${followUps}`;
+
         return fullResponse;
 
     } catch (err) {
