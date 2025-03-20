@@ -1,21 +1,18 @@
-/* General Styles */
 body {
   font-family: Arial, sans-serif;
-  width: 350px; /* Default popup width */
+  width: 350px;
   padding: 20px;
-  background-color: #222831; /* Dark grey background */
-  color: #EEEEEE; /* Very light grey text for contrast */
-  border-radius: 20px; /* Adding border radius for consistency */
+  background-color: #222831;
+  color: #EEEEEE;
+  border-radius: 20px;
   box-sizing: border-box;
 }
 
-/* Header (not used in HTML but keeping for completeness) */
 .header {
   position: relative;
-  height: 30px; /* Space for the button */
+  height: 30px;
 }
 
-/* Zoom Button (not used in HTML but keeping for completeness) */
 .zoom-btn {
   position: absolute;
   top: 5px;
@@ -26,52 +23,47 @@ body {
   padding: 0;
 }
 
-/* Button Container (Quick Notes, Previous Notes, and Black AI buttons) */
 .button-container {
   display: flex;
   flex-direction: row;
-  justify-content: space-between; /* Evenly space buttons */
-  gap: 5px; /* Reduced gap between buttons */
+  justify-content: space-between;
+  gap: 5px;
   margin-bottom: 10px;
 }
 
-/* Section Containers */
 #quickNotesSection, #previousNotesSection, #blackAISection {
   width: 100%;
-  padding: 0; /* Remove extra padding, rely on body padding */
+  padding: 0;
 }
 
-/* Show/Hide Sections */
 #quickNotesSection {
-  display: block; /* Show Quick Notes by default */
+  display: block;
 }
 
 #previousNotesSection, #blackAISection {
-  display: none; /* Hide Previous Notes and Black AI by default */
+  display: none;
 }
 
-/* Note Input */
 .note-input {
   width: 100%;
-  height: 150px; /* Height from your original CSS */
-  border: 1px solid #393E46; /* Slightly lighter dark grey border */
+  height: 150px;
+  border: 1px solid #393E46;
   padding: 8px;
   overflow: auto;
   white-space: pre-wrap;
   font-family: inherit;
   box-sizing: border-box;
-  background-color: #EEEEEE; /* Very light grey background */
-  color: #222831; /* Dark grey text for contrast */
+  background-color: #EEEEEE;
+  color: #222831;
   border-radius: 5px;
-  transition: all 0.3s ease; /* Smooth resize animation */
+  transition: all 0.3s ease;
 }
 
 .note-input:empty:before {
   content: attr(placeholder);
-  color: #666666; /* Mid-grey placeholder for contrast */
+  color: #666666;
 }
 
-/* Maximized Note Input (for zoom feature, not currently used in your HTML) */
 .note-input.maximized {
   height: 400px;
   width: 100%;
@@ -79,18 +71,17 @@ body {
   top: 0;
   left: 0;
   z-index: 1000;
-  background: #EEEEEE; /* Keep very light grey when maximized */
+  background: #EEEEEE;
   color: #222831;
   padding: 40px 10px 10px 10px;
 }
 
-/* Button Styles */
 button {
-  background-color: #00ADB5; /* Teal - Normal state */
-  color: #EEEEEE; /* Very light grey text for contrast */
+  background-color: #00ADB5;
+  color: #EEEEEE;
   border: none;
   padding: 10px;
-  margin: 5px 0; /* Adjusted margin to avoid overlap */
+  margin: 5px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -106,61 +97,55 @@ button img {
 }
 
 button:hover {
-  background-color: #00C4CC; /* Lighter teal - Hover state */
+  background-color: #00C4CC;
 }
 
 button.active {
-  background-color: #008C93; /* Darker teal - Active state */
+  background-color: #008C93;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Previous Notes Button with Logo Image */
 #previousNotesBtn {
-  text-indent: -9999px; /* Hide the text "Previous Notes" */
-  background-image: url("assets/logo.png"); /* Add the logo image */
-  background-size: 20px 20px; /* Size of the image, matching the saveIcon */
+  text-indent: -9999px;
+  background-image: url("assets/icon_history.png");
+  background-size: 20px 20px;
   background-repeat: no-repeat;
   background-position: center;
-  width: 40px; /* Fixed width to fit the image */
-  padding: 10px; /* Ensure the button has enough space */
+  width: 40px;
+  padding: 10px;
 }
 
-/* Get AI Suggestion Button with Gemini Logo */
 #aiSuggestBtn {
-  background-color: #00ADB5; /* Matches normal state */
-  background-image: url("assets/gemini-removebg.png"); /* Add the gemini.png logo */
-  background-size: 20px 20px; /* Size of the logo, matching other icons */
+  background-color: #00ADB5;
+  background-image: url("assets/gemini-removebg.png");
+  background-size: 20px 20px;
   background-repeat: no-repeat;
-  background-position: 10px center; /* Position the logo to the left */
-  padding-left: 35px; /* Add padding to the left to make space for the logo */
-  padding-right: 15px; /* Ensure enough space on the right */
-  width: 180px; /* Increased width for the AI button */
+  background-position: 10px center;
+  padding-left: 35px;
+  padding-right: 15px;
+  width: 180px;
 }
 
-/* Glow Effect for Get AI Suggestion Button */
 #aiSuggestBtn:hover {
   background-color: rgb(0, 173, 181);
-  box-shadow: 0 0 3px #00C4CC, 0 0 5px #00C4CC, 0 0 7px #00ADB5; /* Subtle teal glow effect */
+  box-shadow: 0 0 3px #00C4CC, 0 0 5px #00C4CC, 0 0 7px #00ADB5;
 }
 
-/* Black AI Button */
 #black-ai {
-  width: auto; /* Allow the button to size based on content */
+  width: auto;
   padding: 10px;
-  text-indent: 0; /* Show the text */
+  text-indent: 0;
 }
 
-/* Button Container for Save and AI Buttons */
 .buttondiv {
   display: flex;
   flex-direction: row;
-  justify-content: space-between; /* Ensure buttons are in the same row */
-  gap: 5px; /* Reduced gap between Save Note and Get AI Suggestion buttons */
+  justify-content: space-between;
+  gap: 5px;
   margin-top: 10px;
-  width: 100%; /* Ensure the container takes full width */
+  width: 100%;
 }
 
-/* Notes List */
 #noteList {
   list-style-type: none;
   padding: 0;
@@ -168,47 +153,43 @@ button.active {
   width: 100%;
 }
 
-/* Individual Note Items */
 #noteList li {
-  background-color: #393E46; /* Slightly lighter dark grey for notes */
+  background-color: #393E46;
   padding: 10px;
   margin: 5px 0;
   margin-bottom: 10px;
   border-radius: 5px;
-  border: 1px solid #00ADB5; /* Teal border for previous notes */
+  border: 1px solid #00ADB5;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   word-break: break-word;
 }
 
-/* Note Text */
 #noteList li p {
   margin: 0 0 5px 0;
   line-height: 1.2;
   font-size: 16px;
-  color: #EEEEEE; /* Very light grey text for contrast on dark background */
+  color: #EEEEEE;
 }
 
-/* Note URL */
 #noteList li small {
   font-size: 16px;
-  color: #D1D5DB; /* Light grey for URL text */
+  color: #D1D5DB;
   margin-bottom: 5px;
 }
 
 #noteList li small a {
-  color: #00ADB5; /* Teal for links */
+  color: #00ADB5;
   text-decoration: none;
   font-size: 18px;
 }
 
 #noteList li small a:hover {
   text-decoration: underline;
-  color: #00C4CC; /* Lighter teal on hover for visibility */
+  color: #00C4CC;
 }
 
-/* Delete Button */
 .delete-btn {
   background: none;
   border: none;
@@ -218,17 +199,15 @@ button.active {
   background-color: rgb(0, 173, 181);
 }
 
-
 .delete-btn img {
   width: 20px;
   height: 20px;
 }
 
 .delete-btn:hover {
-  opacity: 0.8; /* Subtle hover effect */
+  opacity: 0.8;
 }
 
-/* Black AI Section Styles */
 #blackAISection h2 {
   font-size: 16px;
   color: #EEEEEE;
@@ -238,17 +217,17 @@ button.active {
 
 #chat-box {
   min-height: 150px;
-  max-height: 200px; /* Adjusted from 300px to match your design */
+  max-height: 200px;
   overflow-y: auto;
   padding: 10px;
-  border: 1px solid #393E46; /* Match the note-input border */
-  background-color: rgb(0, 0, 0); /* Match the notes list background */
-  color: #EEEEEE; /* Light text for contrast */
+  border: 1px solid #393E46;
+  background-color: rgb(0, 0, 0);
+  color: #EEEEEE;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
   margin-bottom: 7px;
-  gap: 5px; /* Space between messages */
+  gap: 5px;
 }
 
 .chat-input-container {
@@ -271,7 +250,7 @@ button.active {
 #send-btn{
   width: auto;
   padding: 8px 15px;
-  background-color: rgb(0,173,181); /* Teal buttons */
+  background-color: rgb(0,173,181);
   color: #EEEEEE;
   border: none;
   border-radius: 5px;
@@ -282,7 +261,7 @@ button.active {
 #clear-btn {
   width: auto;
   padding: 8px 15px;
-  background-color: #393E46; /* Teal buttons */
+  background-color: #393E46;
   color: #EEEEEE;
   border: none;
   border-radius: 5px;
@@ -291,46 +270,44 @@ button.active {
 }
 
 #send-btn:hover, #clear-btn:hover {
-  background-color: #00C4CC; /* Lighter teal on hover */
+  background-color: #00C4CC;
 }
 
-/* Style for AI messages (left-aligned) */
 .ai-message {
   text-align: left;
   margin: 5px 0;
-  max-width: 100%; /* Full width available */
+  max-width: 100%;
   word-wrap: break-word;
 }
 
 .ai-message > span {
   display: inline-block;
   padding: 8px;
-  background-color: rgb(41,42,45); /* Dark background for AI messages */
-  color: #EEEEEE; /* Light text for contrast */
+  background-color: rgb(41,42,45);
+  color: #EEEEEE;
   border-radius: 5px;
-  max-width: 75%; /* Limit AI message width */
+  max-width: 75%;
 }
 
-/* Style for user messages (right-aligned, background covers only text) */
 .user-message {
   text-align: right;
   margin: 5px 0;
   max-width: 100%;
   word-wrap: break-word;
   display: flex;
-  justify-content: flex-end; /* Push content to the right */
+  justify-content: flex-end;
 }
 
 .user-message > span {
-  display: inline-block; /* Background adjusts to text size */
+  display: inline-block;
   padding: 8px;
-  background-color: rgb(80,80,80); /* Blue background for user */
-  color: #EEEEEE; /* Light text for contrast */
+  background-color: rgb(80,80,80);
+  color: #EEEEEE;
   border-radius: 5px;
-  max-width: 75%; /* Optional: limit width to 75% of container */
+  max-width: 75%;
   box-sizing: border-box;
 }
-/* Category Filter Styles */
+
 .category-filter {
   display: flex;
   align-items: center;
@@ -354,7 +331,6 @@ button.active {
   border: 1px solid #393E46;
 }
 
-/* Note Header Styles */
 .note-header {
   display: flex;
   justify-content: space-between;
@@ -362,7 +338,6 @@ button.active {
   margin-bottom: 5px;
 }
 
-/* Category Tag Styles */
 .category-tag {
   font-size: 12px;
   padding: 2px 6px;
@@ -371,74 +346,68 @@ button.active {
   color: white;
 }
 
-/* Category-specific colors */
 .category-code {
-  background-color: #007acc; /* Blue for code */
+  background-color: #007acc;
 }
 
 .category-article {
-  background-color: #6b46c1; /* Purple for articles */
+  background-color: #6b46c1;
 }
 
 .category-research {
-  background-color: #2c7a7b; /* Teal for research */
+  background-color: #2c7a7b;
 }
 
 .category-tutorial {
-  background-color: #38a169; /* Green for tutorials */
+  background-color: #38a169;
 }
 
 .category-idea {
-  background-color: #d69e2e; /* Yellow for ideas */
+  background-color: #d69e2e;
 }
 
 .category-task {
-  background-color: #e53e3e; /* Red for tasks */
+  background-color: #e53e3e;
 }
 
 .category-question {
-  background-color: #dd6b20; /* Orange for questions */
+  background-color: #dd6b20;
 }
 
 .category-other {
-  background-color: #718096; /* Gray for other */
+  background-color: #718096;
 }
 
-/* Timestamp Styles */
 .timestamp {
   font-size: 11px;
   color: #a0aec0;
   align-self: center;
 }
 
-/* Empty notes message */
 .empty-notes-message {
   text-align: center;
   color: #a0aec0;
   padding: 20px 0;
   font-style: italic;
 }
-/* Add to style.css */
 
-/* Container for delete and copy buttons */
 .button-container {
   display: flex;
-  gap: 5px; /* Space between buttons */
-  align-self: flex-end; /* Align to the right of the note */
+  gap: 5px;
+  align-self: flex-end;
 }
 
-/* Copy button styles */
 .copy-btn {
   background: none;
   border: none;
   padding: 5px;
   cursor: pointer;
-  background-color: #00ADB5; /* Teal to match theme */
+  background-color: #00ADB5;
   border-radius: 5px;
 }
 
 .copy-btn:hover {
-  background-color: #00C4CC; /* Lighter teal on hover */
+  background-color: #00C4CC;
 }
 
 .copy-btn img {
@@ -446,7 +415,6 @@ button.active {
   height: 20px;
 }
 
-/* Ensure delete button aligns properly in container */
 .delete-btn {
   background-color: #00ADB5;
   border-radius: 5px;
