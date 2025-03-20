@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Quick Notes with AI",
   "version": "1.3",
-  "author": "First Last",
-  "description": "Quick Notes with AI-powered suggestions",
+  "author": "Brain Not Found",
+  "description": "AI-enhanced note-taking Chrome extension with categorization and clipboard support.",
   "permissions": [
     "storage",
     "tabs",
